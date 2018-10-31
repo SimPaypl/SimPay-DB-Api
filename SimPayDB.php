@@ -7,6 +7,7 @@ class SimPayDB{
 
 	private $status = '';
 	private $value = '';
+	private $valueGross = '';
 	private $control = '';
 
 	private $transId = '';
@@ -41,6 +42,7 @@ class SimPayDB{
 
 		$this -> status = trim( $data[ 'status' ] );
 		$this -> value =  trim( $data[ 'valuenet' ] );
+		$this -> valueGross =  trim( $data[ 'valuenet_gross' ] );
 
 		if( isset( $data['control'] ) ){
 			$this -> control = trim( $data[ 'control' ] );
@@ -109,6 +111,10 @@ class SimPayDB{
 		return $this -> value;
 	}
 
+	public function getValueGross(){
+		return $this -> valueGross;
+	}
+
 	public function getControl(){
 		return $this -> control;
 	}
@@ -146,7 +152,7 @@ class SimPayDB{
 
 		switch( $provider ){
 			case 1:{
-				$arrayComission = [ 0.55 , 0.65 , 0.70 ];
+				$arrayComission = [ 0.65 , 0.65 , 0.65 ];
 
 				break;
 			}
