@@ -12,14 +12,7 @@ if( $simPay -> parse( $_POST ) ){
 	
 	//Sprawdzenie czy parsowanie przebiegło pomyslnie
 	if( $simPay -> isError() ){
-		//Pobranie textowej wersji błędu
-		$errorText = $simPay -> getErrorText();
-		
-		//Wyświetlenie błędu
-		echo $errorText;
-		
-		//Zapisanie błędu do error logów
-		error_log( $errorText , 0 );
+		$simPay -> okTransaction();
 
 		return;
 	}
