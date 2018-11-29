@@ -31,7 +31,7 @@ if( $simPay -> parse( $_POST ) ){
 	if( $simPay -> isError() ){
 		$simPay -> okTransaction();
 
-		return;
+		exit();
 	}
 	
 	//Dodanie informacji o transakcji do bazy danych
@@ -60,7 +60,7 @@ if( $simPay -> parse( $_POST ) ){
 			//Zwrócenie że transakcja została pomyślnie odebrana przez partnera
 			$simPay -> okTransaction();
 
-			return;
+			exit();
 		}
 
 		//$simPay -> getValuePartner() - Ile partner rzeczywiście uzyskał prowizji
