@@ -1,6 +1,23 @@
 <?php
 include( 'SimPayDB.php' );
-include( 'database.php' );
+
+//Ustawienia MYSQL
+$host = 'localhost';
+$port = '3306'; 
+$username = 'username';
+$password = 'password';
+$database = 'database';
+
+$pdoObject = null;
+
+try{
+	$pdoObject = new PDO('mysql:host='.$host.';dbname='.$database.';port='.$port, $username, $password , array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8mb4'"));
+	$pdoObject->query('SET NAMES utf8mb4');
+	$pdoObject->query('SET CHARACTER SET utf8mb4');
+	$pdoObject->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch( PDOException $e ){
+	exit();
+}
 
 $simPay = new SimPayDB();
 
@@ -46,13 +63,7 @@ if( $simPay -> parse( $_POST ) ){
 			return;
 		}
 
-		$stmt = $pdoObject -> prepare('INSERT INTO `recharg_history`( `user_id`, `amount`, `type` ) VALUES ( :user_id , :amount , 5 )');
-		
-		$stmt -> bindValue( ':user_id' , $detailsUser[ 0 ][ 'id' ] , PDO::PARAM_INT );
-		$stmt -> bindValue( ':amount' , $simPay -> getValuePartner() , PDO::PARAM_STR );
-
-		$stmt -> execute();
-
+		//$simPay -> getValuePartner() - Ile partner rzeczywiście uzyskał prowizji
 		$stmt = $pdoObject -> prepare('UPDATE `users` SET `money`= `money` + :amount WHERE `id` = :user_id');
 		
 		$stmt -> bindValue( ':user_id' , $detailsUser[ 0 ][ 'id' ] , PDO::PARAM_INT );
