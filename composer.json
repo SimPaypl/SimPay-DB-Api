@@ -1,0 +1,21 @@
+{
+    "name": "simpaypl/sms_client",
+    "description": "Official SimPay DB API",
+    "type": "library",
+    "require": {
+        "php": "^5.3.3 || ^7.0"
+    },
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Rafał Więcek",
+            "email": "r.wiecek@simpay.pl"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+          "Simpay": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
