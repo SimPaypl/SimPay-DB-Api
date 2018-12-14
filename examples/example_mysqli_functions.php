@@ -30,7 +30,7 @@ if( $simPay -> parse( $_POST ) ){
 
 		mysqli_stmt_close( $conn );
 
-		return;
+		exit();
 	}
 	
 	//Dodanie informacji o transakcji do bazy danych
@@ -59,7 +59,7 @@ if( $simPay -> parse( $_POST ) ){
 
 			mysqli_stmt_close( $conn );
 
-			return;
+			exit();
 		}
 
 		//$simPay -> getValuePartner() - Ile partner rzeczywiście uzyskał prowizji
