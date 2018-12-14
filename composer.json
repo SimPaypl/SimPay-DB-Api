@@ -1,5 +1,5 @@
 {
-    "name": "simpaypl/sms_client",
+    "name": "simpaypl/db_api_client",
     "description": "Official SimPay DB API",
     "type": "library",
     "require": {
