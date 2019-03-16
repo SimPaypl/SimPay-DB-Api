@@ -14,6 +14,8 @@ class SimPayDB{
 
 	private $valuePartner = '';
 
+	private $userNumber = '';
+
 	public function parse( $data ){
 
 		if( !isset( $data[ 'id' ] ) ){
@@ -46,6 +48,10 @@ class SimPayDB{
 
 		if( isset( $data['control'] ) ){
 			$this -> control = trim( $data[ 'control' ] );
+		}
+
+		if( isset( $data['number_from'] ) ){
+			$this -> userNumber = trim( $data[ 'number_from' ] );
 		}
 
 		$this -> transId = trim( $data[ 'id' ] );
@@ -133,6 +139,10 @@ class SimPayDB{
 
 	public function getValuePartner(){
 		return $this -> valuePartner;
+	}
+
+	public function getUserNumber(){
+		return $this -> userNumber;
 	}
 
 	public function calculateRewardPartner( $amount , $provider ){
