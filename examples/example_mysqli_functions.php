@@ -8,6 +8,7 @@ $username = 'username';
 $password = 'password';
 $database = 'database';
 
+//Laczenie do bazy danych
 $conn = mysqli_connect( $host, $username, $password, $database );
 
 // Check connection
