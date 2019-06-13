@@ -318,6 +318,8 @@ class SimPayDBTransaction{
 	}
 
 	protected function generateSign(){
+		$hash = '';
+		
 		if( $this -> requestOptions[ 'amount' ] ){
 			$hash = hash( 'sha256' , $this -> requestOptions[ 'serviceId' ] . $this -> requestOptions[ 'amount' ] . $this -> requestOptions[ 'control' ] . $this -> apiKey );
 		}
