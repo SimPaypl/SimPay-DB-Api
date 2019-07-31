@@ -1,12 +1,6 @@
 <?php
 
 $cfg = array(
-	'mysql' => array(
-		'host' => 'localhost',
-		'username' => '3306',
-		'password' => 'password',
-		'database' => 'database'
-	),
 	'simpay' => array(
 		/*
 			Tryb debugowania
@@ -51,23 +45,13 @@ $cfg = array(
 			Typ ustalania prowizji
 			Typ pola enum?
 			Opis
-				-> Ustawienie opcji amount (netto)
-				-> Ustawienie opcji amount_gross (brutto)
-				-> Ustawienie opcji amount_required (kwota jaką otrzyma klient niezależnie od wybranego operatora)
+				-> Ustawienie opcji amount
+				-> Ustawienie opcji amount_gross
+				-> Ustawienie opcji amount_required
 		*/
 		'amountType' => 'amount'
 	)
 );
-
-
-$mysqli = mysqli_connect($cfg['mysql']['host'], $cfg['mysql']['username'], $cfg['mysql']['password'], $cfg['password']['database']);
-if (!$mysqli) {
-    exit('Connection error: ' . mysqli_connect_error());
-}
-
-$stmt = mysqli_prepare($mysqli, "INSERT INTO `dcb`(`control`, `price`, `status`) VALUES (?, ?, 'new');");
-mysqli_stmt_bind_param($stmt, $cfg['simpay']['control'], $cfg['simpay']['price']);
-mysqli_stmt_execute($stmt);
 
 $array = array(
 	'serviceId' => $cfg['simpay']['serviceId'],
@@ -96,6 +80,9 @@ curl_close($ch);
 $result = json_decode($result);
 
 if ($result->status == "success") {
+	/*
+	* Transakcja wygenerowana prawidłowo, można np. stworzyć rekord w bazie danych z polami typu control, amount itd.
+	*/
 	header('Location: ' . $result->link);
 	exit();
 } else {

@@ -47,27 +47,28 @@ $cfg = array(
 			Kwota transakcji
 			Typ pola float
 		*/
-		'amount' => 10.00
+		'amount' => 10.00,
+		/*
+			Typ ustalania prowizji
+			Typ pola enum?
+			Opis:
+				-> Ustawienie opcji amount
+				-> Ustawienie opcji amount_gross
+				-> Ustawienie opcji amount_required
+		*/
+		'amountType' => 'amount'
 	)
 );
 
-$pdo = null;
 
-//Laczenie do bazy danych
-try {
-	$pdo = new PDO('mysql:host=' . $cfg['mysql']['host'] . ';dbname=' . $cfg['mysql']['database'] . ';port=3306', $cfg['mysql']['username'], $cfg['mysql']['password'], array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8mb4'"));
-	$pdo->query('SET NAMES utf8mb4');
-	$pdo->query('SET CHARACTER SET utf8mb4');
-	$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-	exit('Connection error.');
+$mysqli = mysqli_connect($cfg['mysql']['host'], $cfg['mysql']['username'], $cfg['mysql']['password'], $cfg['password']['database']);
+if (!$mysqli) {
+    exit('Connection error: ' . mysqli_connect_error());
 }
 
-$stmt = $pdo->prepare("INSERT INTO `dcb`(`control`, `price`, `status`) VALUES (:control, :price, 'new');");
-$stmt->bindValue(':control', $cfg['simpay']['control'], PDO::PARAM_STR);
-$stmt->bindValue(':price', $cfg['simpay']['price'], PDO::PARAM_STR);
-$stmt->execute();
-
+$stmt = mysqli_prepare($mysqli, "INSERT INTO `dcb`(`control`, `price`, `status`) VALUES (?, ?, 'new');");
+mysqli_stmt_bind_param($stmt, $cfg['simpay']['control'], $cfg['simpay']['price']);
+mysqli_stmt_execute($stmt);
 
 $simpayTransaction = new SimPayDBTransaction();
 $simpayTransaction->setDebugMode($cfg['simpay']['debugMode']);
@@ -76,9 +77,13 @@ $simpayTransaction->setApiKey($cfg['simpay']['apiKey']);
 $simpayTransaction->setControl($cfg['simpay']['control']);
 $simpayTransaction->setCompleteLink($cfg['simpay']['completeUrl']);
 $simpayTransaction->setFailureLink($cfg['simpay']['failureUrl']);
-//$simpayTransaction->setAmount(10);
-//$simpayTransaction->setAmountGross(10);
-$simpayTransaction->setAmountRequired($cfg['simpay']['amount']);
+if ($cfg['simpay']['amountType'] == "amount") {
+	$simpayTransaction->setAmount($cfg['simpay']['amount']);
+} elseif ($cfg['simpay']['amountType'] == "amount_gross") {
+	$simpayTransaction->setAmountGross($cfg['simpay']['amount']);
+} else {
+	$simpayTransaction->setAmountRequired($cfg['simpay']['amount']);
+}
 $simpayTransaction->generateTransaction();
 
 if ($simpayTransaction->getResults()->status == "success") {

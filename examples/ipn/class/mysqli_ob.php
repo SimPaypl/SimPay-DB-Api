@@ -13,7 +13,7 @@ $cfg = array(
 			Klucz API usługi
 			Typ pola string
 		*/
-		'apiKey' => 'lNEEDQPfPKHleZdd',
+		'apiKey' => '3c7f4b55',
 	)
 );
 
@@ -21,14 +21,22 @@ $cfg = array(
 $mysqli = new mysqli($cfg['mysql']['host'], $cfg['mysql']['username'], $cfg['mysql']['password'], $cfg['password']['database']);
 if ($mysqli->connect_error) {
     exit('Connection error: ' . $mysqli->connect_error);
-} 
+}
 
 $simPay = new SimPayDB();
 
 $simPay->setApiKey($cfg['simpay']['apiKey']);
 
+if (!in_array($simPay->getRemoteAddr(), $simPay->getIp()['respond']['ips'])) {
+	$simPay->okTransaction();
+	$mysqli->close();
+	exit();
+}
+
 //Parsowanie informacji pobranych z POST
 if ($simPay->parse($_POST)) {
+	
+	//if ($simPay->)
 	
 	//Sprawdzenie czy parsowanie przebiegło pomyslnie
 	if ($simPay->isError()) {

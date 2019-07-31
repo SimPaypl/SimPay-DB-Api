@@ -2,12 +2,6 @@
 require_once('SimPayDB.php');
 
 $cfg = array(
-	'mysql' => array(
-		'host' => 'localhost',
-		'username' => '3306',
-		'password' => 'password',
-		'database' => 'database'
-	),
 	'simpay' => array(
 		/*
 			Tryb debugowania
@@ -47,19 +41,19 @@ $cfg = array(
 			Kwota transakcji
 			Typ pola float
 		*/
-		'amount' => 10.00
+		'amount' => 10.00,
+		/*
+			Typ ustalania prowizji
+			Typ pola enum?
+			Opis:
+				-> Ustawienie opcji amount
+				-> Ustawienie opcji amount_gross
+				-> Ustawienie opcji amount_required
+		*/
+		'amountType' => 'amount'
 	)
 );
 
-
-$mysqli = mysqli_connect($cfg['mysql']['host'], $cfg['mysql']['username'], $cfg['mysql']['password'], $cfg['password']['database']);
-if (!$mysqli) {
-    exit('Connection error: ' . mysqli_connect_error());
-}
-
-$stmt = mysqli_prepare($mysqli, "INSERT INTO `dcb`(`control`, `price`, `status`) VALUES (?, ?, 'new');");
-mysqli_stmt_bind_param($stmt, $cfg['simpay']['control'], $cfg['simpay']['price']);
-mysqli_stmt_execute($stmt);
 
 $simpayTransaction = new SimPayDBTransaction();
 $simpayTransaction->setDebugMode($cfg['simpay']['debugMode']);
@@ -68,14 +62,19 @@ $simpayTransaction->setApiKey($cfg['simpay']['apiKey']);
 $simpayTransaction->setControl($cfg['simpay']['control']);
 $simpayTransaction->setCompleteLink($cfg['simpay']['completeUrl']);
 $simpayTransaction->setFailureLink($cfg['simpay']['failureUrl']);
-//$simpayTransaction->setAmount(10);
-//$simpayTransaction->setAmountGross(10);
-$simpayTransaction->setAmountRequired($cfg['simpay']['amount']);
+if ($cfg['simpay']['amountType'] == "amount") {
+	$simpayTransaction->setAmount($cfg['simpay']['amount']);
+} elseif ($cfg['simpay']['amountType'] == "amount_gross") {
+	$simpayTransaction->setAmountGross($cfg['simpay']['amount']);
+} else {
+	$simpayTransaction->setAmountRequired($cfg['simpay']['amount']);
+}
 $simpayTransaction->generateTransaction();
 
 if ($simpayTransaction->getResults()->status == "success") {
 	/*
 		Tutaj należy przekierować użytkownika używając np. header('Location: ' . $simpayTransaction->getResults()->link);
+		Można dodać tutaj kod, który doda rekord do bazy zapisujący np pole typu control itd.
 	*/
 	echo $simpayTransaction->getResults()->link;
 } else {

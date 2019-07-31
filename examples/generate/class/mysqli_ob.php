@@ -47,17 +47,29 @@ $cfg = array(
 			Kwota transakcji
 			Typ pola float
 		*/
-		'amount' => 10.00
+		'amount' => 10.00,
+		/*
+			Typ ustalania prowizji
+			Typ pola enum?
+			Opis:
+				-> Ustawienie opcji amount
+				-> Ustawienie opcji amount_gross
+				-> Ustawienie opcji amount_required
+		*/
+		'amountType' => 'amount'
 	)
 );
 
 
-$mysql = mysql_connect($cfg['mysql']['host'], $cfg['mysql']['username'], $cfg['mysql']['password'], $cfg['password']['database']);
-if (!$mysql) {
-    exit('Connection error: ' . mysql_error());
-}
+$mysqli = new mysqli($cfg['mysql']['host'], $cfg['mysql']['username'], $cfg['mysql']['password'], $cfg['mysql']['database']);
+if ($mysqli->connect_error) {
+    exit('Connection error: ' . $mysqli->connect_error);
+} 
 
-mysql_query("INSERT INTO `dcb`(`control`, `price`, `status`) VALUES ('" . mysql_real_escape_string($cfg['simpay']['control']) . "' '" . mysql_real_escape_string($cfg['simpay']['price']) . "', 'new');", $mysql);
+$stmt = $mysqli->prepare("INSERT INTO `dcb`(`control`, `price`, `status`) VALUES (?, ?, ?);");
+$stmt->bind_param($cfg['simpay']['control'], $cfg['simpay']['price'], 'new');
+$stmt->execute();
+
 
 $simpayTransaction = new SimPayDBTransaction();
 $simpayTransaction->setDebugMode($cfg['simpay']['debugMode']);
@@ -66,9 +78,13 @@ $simpayTransaction->setApiKey($cfg['simpay']['apiKey']);
 $simpayTransaction->setControl($cfg['simpay']['control']);
 $simpayTransaction->setCompleteLink($cfg['simpay']['completeUrl']);
 $simpayTransaction->setFailureLink($cfg['simpay']['failureUrl']);
-//$simpayTransaction->setAmount(10);
-//$simpayTransaction->setAmountGross(10);
-$simpayTransaction->setAmountRequired($cfg['simpay']['amount']);
+if ($cfg['simpay']['amountType'] == "amount") {
+	$simpayTransaction->setAmount($cfg['simpay']['amount']);
+} elseif ($cfg['simpay']['amountType'] == "amount_gross") {
+	$simpayTransaction->setAmountGross($cfg['simpay']['amount']);
+} else {
+	$simpayTransaction->setAmountRequired($cfg['simpay']['amount']);
+}
 $simpayTransaction->generateTransaction();
 
 if ($simpayTransaction->getResults()->status == "success") {
