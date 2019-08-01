@@ -4,6 +4,7 @@ class SimPayDB {
 	private $errorCode = 0;
 
 	private $apiKey = '';
+	private $apiSecret = '';
 
 	private $status = '';
 	private $value = '';
@@ -15,6 +16,8 @@ class SimPayDB {
 	private $valuePartner = '';
 
 	private $userNumber = '';
+	
+	protected $auth = array();
 
 	protected $debugMode = false;
 
@@ -27,9 +30,8 @@ class SimPayDB {
 	}
 
 	private function logDebugMode($err) {
-		print_r( $err ); 
-
-		error_log( $err );
+		print_r($err); 
+		error_log($err);
 	}
 
 	public function parse($data) {
@@ -67,7 +69,7 @@ class SimPayDB {
 		if (!isset($data['sign'])) {
 			$this->setError(true, 1);
 
-			if ($this->isDebugMode()){
+			if ($this->isDebugMode()) {
 				$this->logDebugMode($this->getErrorText());
 			}
 
@@ -105,7 +107,7 @@ class SimPayDB {
 		if ($this->value <= 0.00) {
 			$this->setError(true, 4);
 
-			if ($this->isDebugMode()){
+			if ($this->isDebugMode()) {
 				$this->logDebugMode($this->getErrorText());
 			}
 		}
@@ -115,7 +117,7 @@ class SimPayDB {
 		if ($this->valuePartner <= 0.00) {
 			$this->setError(true, 4);
 
-			if ($this->isDebugMode()){
+			if ($this->isDebugMode()) {
 				$this->logDebugMode($this->getErrorText());
 			}
 		}
@@ -151,6 +153,10 @@ class SimPayDB {
 
 	public function setApiKey($key) {
 		$this->apiKey = $key;
+	}
+	
+	public function setApiSecret($secret) {
+		$this->apiSecret = $secret;
 	}
 
 	public function getStatus() {
@@ -230,12 +236,66 @@ class SimPayDB {
 
 		if ($amount < 9) {
 			return number_format($amount * $arrayCommission[0], 2, '.', '');
-		} else if( $amount < 25 ) {
+		} else if ($amount < 25) {
 			return number_format($amount * $arrayCommission[1], 2 , '.' , '');
 		} else {
 			return number_format($amount * $arrayCommission[2], 2, '.', '');
 		}
 	}
+	
+	public function getRemoteAddr() {
+		return getenv('HTTP_CLIENT_IP') ?: getenv('HTTP_X_FORWARDED_FOR'[0]) ?: getenv('HTTP_X_FORWARDED') ?: getenv('HTTP_FORWARDED_FOR') ?: getenv('HTTP_FORWARDED') ?: getenv('REMOTE_ADDR');
+	}
+	
+	public function getIp() {
+		$this->response = $this->url('get_ip');
+		return $this->response;
+	}
+	
+	public function checkIp($ip) {
+		if (in_array($ip, $this->getIp()['respond']['ips'])) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function response() {
+		return $this->response;
+	}
+	
+	private function url($value, $params = array()) {
+		$auth = array(
+			"auth" => array(
+				"key" => $this->apiKey,
+				"secret" => $this->apiSecret, 
+			)
+		);
+		$data = json_encode(array('params' => array_merge($auth, $params)));
+		$this->call = $this->request($data, "https://simpay.pl/api/" . $value);
+		return $this->call;
+	}
+	
+	private function request($data, $url) {
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL, $url);
+		curl_setopt($curl, CURLOPT_POST, 1);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+		curl_setopt($curl, CURLOPT_FAILONERROR, 1);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // developer only
+		$call = curl_exec($curl);
+		$response = json_decode($call, true);
+		$error = curl_errno($curl);
+		curl_close($curl);
+		
+		if ($error > 0) {
+			throw new RuntimeException('CURL ERROR Code: ' . $error);
+		}
+		
+		return $response;
+	}
+	
 }
 
 class SimPayDBTransaction {
@@ -252,6 +312,7 @@ class SimPayDBTransaction {
 	];
 
 	protected $apiKey = '';
+	protected $apiSecret = '';
 
 	protected $resultInstance = NULL;
 
@@ -261,17 +322,17 @@ class SimPayDBTransaction {
 		$this->debugMode = (boolean)$value;
 	}
 
-	private function isDebugMode(){
+	private function isDebugMode() {
 		return !!$this->debugMode;
 	}
 
-	private function logDebugMode($err){
+	private function logDebugMode($err) {
 		print_r($err);
 
 		error_log($err);
 	}
 
-	public function setServiceID($id){
+	public function setServiceID($id) {
 		$this->requestOptions['serviceId'] = $id;
 	}
 
@@ -315,6 +376,10 @@ class SimPayDBTransaction {
 	public function setApiKey($key) {
 		$this->apiKey = $key;
 	}
+	
+	public function setApiSecret($secret) {
+		$this->apiSecret = $secret;
+	}
 
 	protected function generateSign() {
 		$hash = '';
@@ -331,7 +396,7 @@ class SimPayDBTransaction {
 	}
 
 	public function getTransactionLink() {
-		if (!isset($this->resultInstance->link)){
+		if (!isset($this->resultInstance->link)) {
 			return '';
 		}
 
@@ -363,7 +428,7 @@ class SimPayDBTransaction {
 			$this->resultInstance = $resultDecode;
 		}
 		catch (Exception $err) {
-			if( $this->isDebugMode()) {
+			if ($this->isDebugMode()) {
 				$this->logDebugMode($err);
 			}
 		}
@@ -374,6 +439,7 @@ class SimPayDBTransaction {
 			}
 		}
 	}
+	
 }
 
 ?>
