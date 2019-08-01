@@ -27,6 +27,11 @@ $simPay = new SimPayDB();
 
 $simPay->setApiKey($cfg['simpay']['apiKey']);
 
+if (!$simPay->checkIp($simPay->getRemoteAddr())) {
+	$simPay->okTransaction();
+	exit();
+}
+
 //Parsowanie informacji pobranych z POST
 if ($simPay->parse($_POST)) {
 	

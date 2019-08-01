@@ -31,11 +31,10 @@ try {
 
 $simPay = new SimPayDB();
 
-$simPay -> setApiKey($cfg['simpay']['apiKey']);
+$simPay->setApiKey($cfg['simpay']['apiKey']);
 
-if (!in_array($simPay->getRemoteAddr(), $simPay->getIp()['respond']['ips'])) {
+if (!$simPay->checkIp($simPay->getRemoteAddr())) {
 	$simPay->okTransaction();
-	$mysqli->close();
 	exit();
 }
 
