@@ -213,23 +213,19 @@ class SimPayDB {
 
 		switch($provider) {
 			case 1:{
-				$arrayCommission = [0.65, 0.65, 0.65];
-
+				$arrayCommission = [0.67, 0.67, 0.70];
 				break;
 			}
 			case 2:{
 				$arrayCommission = [0.55, 0.65, 0.70];
-
 				break;
 			}
 			case 3:{
 				$arrayCommission = [0.60, 0.60, 0.60];
-
 				break;
 			}
 			case 4:{
-				$arrayCommission = [0.50, 0.50, 0.50];
-
+				$arrayCommission = [0.50, 0.50, 0.60];
 				break;
 			}
 		}
