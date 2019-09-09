@@ -196,7 +196,7 @@ class SimPayDB {
 		return $this->userNumber;
 	}
 
-	public function calculateRewardPartner($amount, $provider) {
+	public function calculateRewardPartner($amount, $provider, $serviceId) {
 		/*
 		$provider =
 		1 - Orange
@@ -204,6 +204,12 @@ class SimPayDB {
 		3 - T-mobile
 		4 - Plus
 		*/
+		
+		$result = $this->url('db_hosts_commission', array('service_id' => $serviceId));
+		
+		if (!isset($result['respond'])) {
+			return false;
+		}
 
 		if ($amount <= 0) {
 			return 0.00;
@@ -213,29 +219,29 @@ class SimPayDB {
 
 		switch($provider) {
 			case 1:{
-				$arrayCommission = [0.67, 0.67, 0.70];
+				$arrayCommission = [$result['respond'][0]['commission_0'], $result['respond'][0]['commission_9'], $result['respond'][0]['commission_25']];
 				break;
 			}
 			case 2:{
-				$arrayCommission = [0.55, 0.65, 0.70];
+				$arrayCommission = [$result['respond'][1]['commission_0'], $result['respond'][1]['commission_9'], $result['respond'][1]['commission_25']];
 				break;
 			}
 			case 3:{
-				$arrayCommission = [0.60, 0.60, 0.60];
+				$arrayCommission = [$result['respond'][2]['commission_0'], $result['respond'][2]['commission_9'], $result['respond'][2]['commission_25']];
 				break;
 			}
 			case 4:{
-				$arrayCommission = [0.50, 0.50, 0.60];
+				$arrayCommission = [$result['respond'][3]['commission_0'], $result['respond'][3]['commission_9'], $result['respond'][3]['commission_25']];
 				break;
 			}
 		}
 
 		if ($amount < 9) {
-			return number_format($amount * $arrayCommission[0], 2, '.', '');
+			return number_format($amount * ($arrayCommission[0] / 100), 2, '.', '');
 		} else if ($amount < 25) {
-			return number_format($amount * $arrayCommission[1], 2 , '.' , '');
+			return number_format($amount * ($arrayCommission[1] / 100), 2, '.' , '');
 		} else {
-			return number_format($amount * $arrayCommission[2], 2, '.', '');
+			return number_format($amount * ($arrayCommission[2] / 100), 2, '.', '');
 		}
 	}
 	
