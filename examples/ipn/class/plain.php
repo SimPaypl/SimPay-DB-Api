@@ -2,13 +2,13 @@
 require_once('SimPayDB.php');
 
 $cfg = array(
-	'simpay' => array(
-		/*
-			Klucz API usługi
-			Typ pola string
-		*/
-		'apiKey' => 'lNEEDQPfPKHleZdd',
-	)
+    'simpay' => array(
+        /*
+            Klucz API usługi
+            Typ pola string
+        */
+        'apiKey' => 'lNEEDQPfPKHleZdd',
+    )
 );
 
 $simPay = new SimPayDB();
@@ -16,28 +16,27 @@ $simPay = new SimPayDB();
 $simPay->setApiKey($cfg['simpay']['apiKey']);
 
 if (!$simPay->checkIp($simPay->getRemoteAddr())) {
-	$simPay->okTransaction();
-	exit();
+    $simPay->okTransaction();
+    exit();
 }
 
 //Parsowanie informacji pobranych z POST
 if ($simPay->parse($_POST)) {
-	
-	//Sprawdzenie czy parsowanie przebiegło pomyslnie
-	if ($simPay->isError()) {
-		//Zwrócenie że transakcja została pomyślnie odebrana przez partnera
-		$simPay->okTransaction();
-		exit();
-	}
-	
-	
-	//Sprawdzenie czy transakcja została opłacona
-	if (!$simPay->isTransactionPaid()) {
-		error_log($simPay->getErrorText());
-	}
+    //Sprawdzenie czy parsowanie przebiegło pomyslnie
+    if ($simPay->isError()) {
+        //Zwrócenie że transakcja została pomyślnie odebrana przez partnera
+        $simPay->okTransaction();
+        exit();
+    }
+    
+    
+    //Sprawdzenie czy transakcja została opłacona
+    if (!$simPay->isTransactionPaid()) {
+        error_log($simPay->getErrorText());
+    }
 } else {
-	//Sprawdzenie typu błedu
-	error_log($simPay->getErrorText());
+    //Sprawdzenie typu błedu
+    error_log($simPay->getErrorText());
 }
 
 //$simPay->getStatus() - Obecny status transakcji
@@ -50,4 +49,3 @@ if ($simPay->parse($_POST)) {
 
 $simPay->okTransaction();
 exit();
-?>

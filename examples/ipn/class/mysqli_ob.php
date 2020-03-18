@@ -2,19 +2,19 @@
 require_once('SimPayDB.php');
 
 $cfg = array(
-	'mysql' => array(
-		'host' => 'localhost',
-		'username' => 'username',
-		'password' => 'password',
-		'database' => 'database'
-	),
-	'simpay' => array(
-		/*
-			Klucz API usługi
-			Typ pola string
-		*/
-		'apiKey' => '3c7f4b55',
-	)
+    'mysql' => array(
+        'host' => 'localhost',
+        'username' => 'username',
+        'password' => 'password',
+        'database' => 'database'
+    ),
+    'simpay' => array(
+        /*
+            Klucz API usługi
+            Typ pola string
+        */
+        'apiKey' => '3c7f4b55',
+    )
 );
 
 //Laczenie do bazy danych
@@ -28,53 +28,51 @@ $simPay = new SimPayDB();
 $simPay->setApiKey($cfg['simpay']['apiKey']);
 
 if (!$simPay->checkIp($simPay->getRemoteAddr())) {
-	$simPay->okTransaction();
-	exit();
+    $simPay->okTransaction();
+    exit();
 }
 
 //Parsowanie informacji pobranych z POST
 if ($simPay->parse($_POST)) {
-	
-	//if ($simPay->)
-	
-	//Sprawdzenie czy parsowanie przebiegło pomyslnie
-	if ($simPay->isError()) {
-		//Zwrócenie że transakcja została pomyślnie odebrana przez partnera
-		$simPay->okTransaction();
-		$mysqli->close();
-		exit();
-	}
-	
-	//Dodanie informacji o transakcji do bazy danych
-	//$simPay->getStatus() - Obecny status transakcji
-	//$simPay->getValuePartner() - Ile partner rzeczywiście uzyskał prowizji
-	//$simPay->getControl() - Wartość control wysłana przy starcie transakcji
-	
-	//Sprawdzenie czy transakcja została opłacona
-	if ($simPay->isTransactionPaid()) {
-		$stmt = $mysqli->prepare("SELECT * FROM `dcb` WHERE `control` = ?;");
-	
-		$stmt->bind_param($simPay->getControl());
-		$stmt->execute();
+    //if ($simPay->)
+    
+    //Sprawdzenie czy parsowanie przebiegło pomyslnie
+    if ($simPay->isError()) {
+        //Zwrócenie że transakcja została pomyślnie odebrana przez partnera
+        $simPay->okTransaction();
+        $mysqli->close();
+        exit();
+    }
+    
+    //Dodanie informacji o transakcji do bazy danych
+    //$simPay->getStatus() - Obecny status transakcji
+    //$simPay->getValuePartner() - Ile partner rzeczywiście uzyskał prowizji
+    //$simPay->getControl() - Wartość control wysłana przy starcie transakcji
+    
+    //Sprawdzenie czy transakcja została opłacona
+    if ($simPay->isTransactionPaid()) {
+        $stmt = $mysqli->prepare("SELECT * FROM `dcb` WHERE `control` = ?;");
+    
+        $stmt->bind_param($simPay->getControl());
+        $stmt->execute();
 
-		$detailsUser = $stmt->fetch(); 
+        $detailsUser = $stmt->fetch();
 
-		if (count($detailsUser) == 0) {
-			//Zwrócenie że transakcja została pomyślnie odebrana przez partnera
-			$simPay->okTransaction();
+        if (count($detailsUser) == 0) {
+            //Zwrócenie że transakcja została pomyślnie odebrana przez partnera
+            $simPay->okTransaction();
 
-			$stmt = $mysqli->prepare("UPDATE `dcb` SET `status` = 'completed', `amount` = ? WHERE `control` = ?;");
-			$stmt->bind_param($simPay->getValuePartner(), $simPay->getControl());
-			$stmt->execute();
-			$mysqli->close();
-			
-			exit();
-		}
-		
-	}
+            $stmt = $mysqli->prepare("UPDATE `dcb` SET `status` = 'completed', `amount` = ? WHERE `control` = ?;");
+            $stmt->bind_param($simPay->getValuePartner(), $simPay->getControl());
+            $stmt->execute();
+            $mysqli->close();
+            
+            exit();
+        }
+    }
 } else {
-	//Sprawdzenie typu błedu
-	error_log($simPay->getErrorText());
+    //Sprawdzenie typu błedu
+    error_log($simPay->getErrorText());
 }
 
 //Zwrócenie że transakcja została pomyślnie odebrana przez partnera
@@ -82,4 +80,3 @@ if ($simPay->parse($_POST)) {
 $simPay->okTransaction();
 
 $mysqli->close();
-?>

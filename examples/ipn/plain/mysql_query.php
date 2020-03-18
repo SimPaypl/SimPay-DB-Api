@@ -1,53 +1,54 @@
 <?php
 $cfg = array(
-	'mysql' => array(
-		'host' => 'localhost',
-		'username' => 'username',
-		'password' => 'password',
-		'database' => 'database'
-	),
-	/*
-	* Klucz API z panelu
-	*/
-	'apiKey' => 'yjhy45ffgbxv',
-	/*
-	* ID Usługi z panelu simpay
-	*/
-	'serviceId' => 1111,
-	/*
-	* Kwota jaką miała kosztować usługa
-	*/
-	'amount' => 22.50
+    'mysql' => array(
+        'host' => 'localhost',
+        'username' => 'username',
+        'password' => 'password',
+        'database' => 'database'
+    ),
+    /*
+    * Klucz API z panelu
+    */
+    'apiKey' => 'yjhy45ffgbxv',
+    /*
+    * ID Usługi z panelu simpay
+    */
+    'serviceId' => 1111,
+    /*
+    * Kwota jaką miała kosztować usługa
+    */
+    'amount' => 22.50
 );
 
-function getRemoteAddr() {
-	return getenv('HTTP_CLIENT_IP') ?: getenv('HTTP_X_FORWARDED_FOR'[0]) ?: getenv('HTTP_X_FORWARDED') ?: getenv('HTTP_FORWARDED_FOR') ?: getenv('HTTP_FORWARDED') ?: getenv('REMOTE_ADDR');
+function getRemoteAddr()
+{
+    return getenv('HTTP_CLIENT_IP') ?: getenv('HTTP_X_FORWARDED_FOR'[0]) ?: getenv('HTTP_X_FORWARDED') ?: getenv('HTTP_FORWARDED_FOR') ?: getenv('HTTP_FORWARDED') ?: getenv('REMOTE_ADDR');
 }
 
-function checkIp($ip) {
-	
-	$curl = curl_init();
-	curl_setopt($curl, CURLOPT_URL, 'https://simpay.pl/api/get_ip');
-	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($curl, CURLOPT_FAILONERROR, true);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-	$response = json_decode(curl_exec($curl));
-	curl_close($curl);
+function checkIp($ip)
+{
+    
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, 'https://simpay.pl/api/get_ip');
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_FAILONERROR, true);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    $response = json_decode(curl_exec($curl));
+    curl_close($curl);
 
-	if (in_array($ip, $response->respond->ips)) {
-		return true;
-	} else {
-		return false;
-	}
-
+    if (in_array($ip, $response->respond->ips)) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 if (!checkIp(getRemoteAddr())) {
-	exit('OK');
+    exit('OK');
 }
 
 if (!isset($_POST['id'], $_POST['status'], $_POST['valuenet_gross'], $_POST['valuenet'], $_POST['valuepartner'], $_POST['control'], $_POST['sign'])) {
-	exit('OK');
+    exit('OK');
 }
 
 //Laczenie do bazy danych
@@ -87,15 +88,15 @@ $json->sign;
 */
 
 if ($json->status != "ORDER_PAYED") {
-	exit('OK');
+    exit('OK');
 }
 
 if ($json->sign != hash('sha256', $json->id . $json->status . $json->valuenet_netto . $json->valuepartner . $json->control . $cfg['apiKey'])) {
-	exit('OK');
+    exit('OK');
 }
 
 if ($json->valuenet_gross != $cfg['amount']) {
-	exit('OK');
+    exit('OK');
 }
 
 $retval = mysql_query("SELECT * FROM `dcb` WHERE `control` = '" . mysql_real_escape_string($mysql, $simPay->getControl()) . "' AND `status` = 'new';", $mysql);
@@ -103,12 +104,11 @@ $detailsUser = mysql_fetch_assoc($retval);
 mysql_free_result($retval);
 
 if (count($detailsUser) == 0) {
-	
-	/*
-	* Setowanie statusu transakcji jako completed w przypadku poprawnego zakończenia transakcji i jeżeli dana transakcja po polu control została znaleziona w bazie danych
-	*/
-	mysql_query("UPDATE `dcb` SET `status` = 'completed', `amount` = '" . mysql_real_escape_string($mysql, $simPay->getValuePartner()) . "' WHERE `control` = ''" . mysql_real_escape_string($mysql, $simPay->getControl()) . "';", $mysql);
-	mysql_close($mysql);
+    /*
+    * Setowanie statusu transakcji jako completed w przypadku poprawnego zakończenia transakcji i jeżeli dana transakcja po polu control została znaleziona w bazie danych
+    */
+    mysql_query("UPDATE `dcb` SET `status` = 'completed', `amount` = '" . mysql_real_escape_string($mysql, $simPay->getValuePartner()) . "' WHERE `control` = ''" . mysql_real_escape_string($mysql, $simPay->getControl()) . "';", $mysql);
+    mysql_close($mysql);
 }
 
 ob_clean();
