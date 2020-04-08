@@ -2,6 +2,7 @@
     "name": "simpaypl/db_api_client",
     "description": "Official SimPay DB API",
     "type": "library",
+    "version": "1.0",
     "require": {
         "php": "^5.3.3 || ^7.0"
     },
