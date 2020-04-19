@@ -1,4 +1,6 @@
-# SimPay-DB-Api-PHP
+## :warning: Zalecamy używanie [nowej biblioteki](https://github.com/SimPaypl/SimPay-API-php)
+
+## SimPay-DB-Api-PHP
 Wartość zwracana przez partnera powinna zawierać tylko "OK". System SimPay uzna wtedy, że transakcja została poprawnie obsłużona i nie będzie ponawiał zapytań do serwisu partnera.
 
 ## Requirements
